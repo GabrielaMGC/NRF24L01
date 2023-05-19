@@ -1,24 +1,31 @@
-#include <SPI.h>
-#include <nRF24L01.h>
-#include <RF24.h>
-
-RF24 radio(9,10); //pinos (CE,CSN)
-const byte endereco[6] = "2305g"
-
-int pinoLed = 3;
-int estadoBotao = 1;
-
+#include <SPI.h> //INCLUSÃO DE BIBLIOTECA
+#include <nRF24L01.h> //INCLUSÃO DE BIBLIOTECA
+#include <RF24.h> //INCLUSÃO DE BIBLIOTECA
+ 
+RF24 radio(9, 10); //CRIA UMA INSTÂNCIA UTILIZANDO OS PINOS (CE, CSN)     
+const byte endereco[6] = "2305g"; //CRIA UM ENDEREÇO PARA ENVIO DOS
+//DADOS (O TRANSMISSOR E O RECEPTOR DEVEM SER CONFIGURADOS COM O MESMO ENDEREÇO)
+ 
+int pinoBotao = 2; //PINO DIGITAL UTILIZADO PELO BOTÃO
+int estadoBotao = 0; //VARIÁVEL PARA ARMAZENAR O ESTADO DO BOTÃO
+ 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(pinoLed,OUTPUT);
-  digitalWrite(pinoLed,LOW);
-  radio.begin();
-  radio.openReadingPipe(0,endereco); //define o endereço que vai receber os dados
-  radio.setPALevel(RF24_PA_HIGH); //amplificador de sinal
-  radio.startListening(); //definindo só como receptor de sinal
+  pinMode(pinoBotao, INPUT_PULLUP); //DEFINE O PINO COMO ENTRADA / "_PULLUP" É PARA ATIVAR O RESISTOR INTERNO
+    //DO ARDUINO PARA GARANTIR QUE NÃO EXISTA FLUTUAÇÃO ENTRE 0 (LOW) E 1 (HIGH)
+  radio.begin(); //INICIALIZA A COMUNICAÇÃO SEM FIO
+  radio.openWritingPipe(endereco); //DEFINE O ENDEREÇO PARA ENVIO DE DADOS AO RECEPTOR
+  radio.setPALevel(RF24_PA_HIGH);  //DEFINE O NÍVEL DO AMPLIFICADOR DE POTÊNCIA
+  radio.stopListening(); //DEFINE O MÓDULO COMO TRANSMISSOR (NÃO RECEBE DADOS)
 }
-
-void loop() {
-  // put your main code here, to run repeatedly:
-
+ 
+void loop(){
+  if(digitalRead(pinoBotao) == HIGH){ //SE A LEITURA DO PINO FOR IGUAL A HIGH, FAZ
+    estadoBotao = 1; //VARIÁVEL RECEBE VALOR 1
+    radio.write(&estadoBotao, sizeof(estadoBotao)); //ENVIA AO RECEPTOR OS DADOS
+  }else{ //SENÃO, FAZ
+        if(digitalRead(pinoBotao) == LOW){ //SE A LEITURA DO PINO FOR IGUAL A LOW, FAZ
+        estadoBotao = 0; //VARIÁVEL RECEBE VALOR 0
+        radio.write(&estadoBotao, sizeof(estadoBotao)); //ENVIA AO RECEPTOR OS DADOS
+        }
+  }
 }
